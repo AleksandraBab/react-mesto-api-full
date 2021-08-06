@@ -17,6 +17,8 @@ const NotFoundError = require('./errors/not-found');
 const allowedCors = [
   'localhost:3001',
   'http://localhost:3001',
+  'http://capibara.students.nomoredomains.rocks',
+  'https://capibara.students.nomoredomains.rocks',
 ];
 
 const isEmail = (value) => {
