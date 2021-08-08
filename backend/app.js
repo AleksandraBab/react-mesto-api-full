@@ -1,8 +1,11 @@
+require('dotenv').config();
 const express = require('express');
 const mongoose = require('mongoose');
 const bodyParser = require('body-parser');
 const cookieParser = require('cookie-parser');
 const validator = require('validator');
+const helmet = require('helmet');
+const rateLimit = require('express-rate-limit');
 const { errors, celebrate, Joi } = require('celebrate');
 const { requestLogger, errorLogger } = require('./middlewares/logger');
 const usersRouter = require('./routes/users');
@@ -21,6 +24,11 @@ const allowedCors = [
   'https://capibara.students.nomoredomains.rocks',
 ];
 
+const limiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 100,
+});
+
 const isEmail = (value) => {
   const isValid = validator.isEmail(value);
   if (isValid) {
@@ -35,6 +43,8 @@ const app = express();
 app.use(cookieParser());
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
+app.use(helmet());
+app.use(limiter);
 
 mongoose.connect('mongodb://localhost:27017/mesto', {
   useNewUrlParser: true,
@@ -44,10 +54,10 @@ mongoose.connect('mongodb://localhost:27017/mesto', {
 
 app.use(requestLogger);
 
-app.use(function(req, res, next) {
+app.use((req, res, next) => {
   const { origin } = req.headers;
   const { method } = req;
-  const DEFAULT_ALLOWED_METHODS = "GET,HEAD,PUT,PATCH,POST,DELETE";
+  const DEFAULT_ALLOWED_METHODS = 'GET,HEAD,PUT,PATCH,POST,DELETE';
   const requestHeaders = req.headers['access-control-request-headers'];
   if (allowedCors.includes(origin)) {
     res.header('Access-Control-Allow-Origin', origin);
@@ -58,7 +68,7 @@ app.use(function(req, res, next) {
     return res.status(200).send();
   }
 
-  next();
+  return next();
 });
 
 app.get('/crash-test', () => {
@@ -89,4 +99,4 @@ app.use('*', (req, res, next) => {
 });
 app.use(error);
 
-app.listen();
+app.listen(PORT);
