@@ -44,6 +44,7 @@ app.use(cookieParser());
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(helmet());
+app.use(requestLogger);
 app.use(limiter);
 
 mongoose.connect('mongodb://localhost:27017/mesto', {
@@ -51,8 +52,6 @@ mongoose.connect('mongodb://localhost:27017/mesto', {
   useCreateIndex: true,
   useFindAndModify: false,
 });
-
-app.use(requestLogger);
 
 app.use((req, res, next) => {
   const { origin } = req.headers;
